@@ -1,0 +1,47 @@
+HDD, SSD
+Sisteme de fisiere UNIX:
+	-boot block
+	-superblock
+	-zona de i-node-uri  (user, GID, marime, tip)
+	-zona de swapping
+	-zona de continut
+
+
+Pt a deschide fisiere:
+int fd=open("fisier.txt",O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+
+Pt a scrie:
+write(fd,"Salut",5);
+
+Pt a citi:
+char buffer[10];
+read(fd,buffer,10);
+
+Pt a inchide fisierul:
+close(fd);
+
+Pt a schimba poz indicatorului in fisier:
+lseek(fd,0,SEEK_SET);
+
+
+stat("fis.txt",&statbuf);  //
+lstat
+fstat
+
+
+link("fis_orig.txt","fis_legat.txt")     //hardware
+simlink     //simbolica
+unlink    //le dez-link-uie)
+
+
+
+
+
+PT PROIECT:
+-treasure_hunt_manager.c
+-creem si organizam dat in fisiere
+-adaugam, listam si stergem din fisiere
+-vedem detalii specifice pt treasure
+-logging la fiecare actiune a user-ului
+-folosim open, read, write, close, lseek, stat, mkdir
+

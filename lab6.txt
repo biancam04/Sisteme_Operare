@@ -1,0 +1,75 @@
+HDD, SSD
+Sisteme de fisiere UNIX:
+	-boot block
+	-superblock
+	-zona de i-node-uri  (user, GID, marime, tip)
+	-zona de swapping
+	-zona de continut
+
+HARD LINK:/ln fis1.txt fis2.txt
+     	  \echo "salut">fis1.txt      ~scrie si in fis2.txt
+
+	  /rm_f fis1.txt
+	  \fis2.txt        ~mai exista
+
+SYMBOLIC LINK:	/ln -s fis1.txt fis2.txt
+	 	|echo "salut" >fis1.txt
+		\cat fis2.txt > "salut"
+		rm -f fis1.txt     ~se pierde legatura
+
+
+
+
+
+Pt a deschide fisiere:
+int fd=open("fisier.txt",O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+
+Pt a scrie:
+write(fd,"Salut",5);
+
+Pt a citi:
+char buffer[10];
+read(fd,buffer,10);
+
+Pt a inchide fisierul:
+close(fd);
+
+Pt a schimba poz indicatorului in fisier:
+lseek(fd,0,SEEK_SET);
+
+
+stat("fis.txt",&statbuf);  //afiseaza date despre fisier intr-un alt fisier
+lstat
+fstat
+
+
+link("fis_orig.txt","fis_legat.txt")     //hardware
+simlink     //simbolica
+unlink    //le dez-link-uie)
+
+
+
+
+
+PT PROIECT:
+-treasure_hunt_manager.c
+-creem si organizam dat in fisiere
+-adaugam, listam si stergem din fisiere
+-vedem detalii specifice pt treasure
+-logging la fiecare actiune a user-ului
+-folosim open, read, write, close, lseek, stat, mkdir
+
+treasure--->folder: -binary file
+		    -log file
+
+
+/project_rrot
+|
+|-treasure_manager.c
+|-Hunt001/
+|-treasures.data -->treasure records
+\logged_hunt -->log text file
+.
+.
+.
+|-logged_hunt - Hunt001 -->sym.link
