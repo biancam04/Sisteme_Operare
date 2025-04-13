@@ -17,7 +17,7 @@ void log_action(const char *hunt_id, const char *operation) {
     char log_path[MAX_PATH];
     snprintf(log_path, sizeof(log_path), "HUNTS/%s/logged_hunt", hunt_id);
 
-    int log_fd = open(log_path, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    int log_fd = open(log_path, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
     if (log_fd < 0) {
         perror("Failed to open log file");
         return;
@@ -180,7 +180,7 @@ void remove_treasure(const char *hunt_id, const char *treasure_id) {
 
     char tmp_path[MAX_PATH];
     snprintf(tmp_path, sizeof(tmp_path), "HUNTS/%s/tmp.dat", hunt_id);
-    int tmp_fd = open(tmp_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int tmp_fd = open(tmp_path, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (tmp_fd < 0) {
         perror("Failed to create temp file");
         close(fd);
