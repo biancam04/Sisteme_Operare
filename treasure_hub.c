@@ -47,6 +47,7 @@ void stop_monitor() {
 }
 
 
+
 void send_command(const char *command) {
     if (monitor_pid <= 0) {
         printf("Monitor not running.\n");

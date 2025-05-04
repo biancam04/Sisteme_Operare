@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <string.h>
 
+
 #define COMMAND_FILE "monitor_command.txt"
 
 volatile sig_atomic_t command_ready = 0;
