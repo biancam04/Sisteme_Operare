@@ -12,17 +12,28 @@
 pid_t monitor_pid = -1;
 int monitor_stopping = 0;
 
+
 void sigchld_handler(int sig) {
+    printf("SIGCHLD received\n");  
+    fflush(stdout);
+
     int status;
-    waitpid(monitor_pid, &status, 0);
-    printf("Monitor has terminated. Status: %d\n", WEXITSTATUS(status));
-    monitor_pid = -1;
-    monitor_stopping = 0;
+    pid_t pid;
+    
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
+        if (pid == monitor_pid) {
+            printf("Monitor has terminated. Status: %d\n", WEXITSTATUS(status));
+            monitor_pid = -1;
+            monitor_stopping = 0;
+        }
+    }
 }
+
+
 
 void start_monitor() {
     if (monitor_pid > 0) {
-        printf("Monitor already running.\n");
+        printf("Monitor already running\n");
         return;
     }
     monitor_pid = fork();
@@ -42,7 +53,7 @@ void stop_monitor() {
         send_command("stop_monitor");
         monitor_stopping = 1;
     } else {
-        printf("No monitor running to stop.\n");
+        printf("No monitor running to stop\n");
     }
 }
 
@@ -50,13 +61,14 @@ void stop_monitor() {
 
 void send_command(const char *command) {
     if (monitor_pid <= 0) {
-        printf("Monitor not running.\n");
+        printf("Monitor not running\n");
         return;
     }
-    if (monitor_stopping) {
+    if (monitor_stopping && strcmp(command, "stop_monitor") != 0) {
         printf("Monitor is stopping, please wait...\n");
         return;
     }
+
 
     int fd = open(COMMAND_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR );
     if (fd < 0) {
@@ -87,11 +99,56 @@ void list_hunts() {
     closedir(dir);
 }
 
+void list_treasure(const char *hunt_name) {
+    char path[512];
+    snprintf(path, sizeof(path), "HUNTS/%s/treasures.txt", hunt_name);
+
+    FILE *f = fopen(path, "r");
+    if (!f) {
+        printf("Could not open treasures for hunt: %s\n", hunt_name);
+        return;
+    }
+
+    printf("Treasures in %s:\n", hunt_name);
+    char line[256];
+    while (fgets(line, sizeof(line), f)) {
+        printf("- %s", line); 
+    }
+
+    fclose(f);
+}
+
+void view_treasure(const char *hunt_name, const char *treasure_name) {
+    char path[512];
+    snprintf(path, sizeof(path), "HUNTS/%s/treasures.txt", hunt_name);
+
+    FILE *f = fopen(path, "r");
+    if (!f) {
+        printf("Could not open treasures for hunt: %s\n", hunt_name);
+        return;
+    }
+
+    char line[256];
+    int found = 0;
+    while (fgets(line, sizeof(line), f)) {
+        if (strstr(line, treasure_name)) {
+            printf("Found: %s", line);
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found)
+        printf("Treasure %s not found in %s\n", treasure_name, hunt_name);
+    fclose(f);
+}
+
+
 int main() {
     struct sigaction sa;
     sa.sa_handler = sigchld_handler;
     sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
+    sa.sa_flags = SA_RESTART;
     sigaction(SIGCHLD, &sa, NULL);
 
     char input[128];
@@ -108,22 +165,31 @@ int main() {
         } else if (strcmp(input, "list_hunts") == 0) {
             send_command("list_hunts");
 	    list_hunts();
-        } else if (strcmp(input, "list_treasures") == 0) {
+        } else if (strncmp(input, "list_treasures",14) == 0) {
             send_command("list_treasures");
-        } else if (strcmp(input, "view_treasure") == 0) {
+	    char *hunt = input + 15;
+	    list_treasure(hunt);
+        } else if (strncmp(input, "view_treasure",13) == 0) {
             send_command("view_treasure");
+	    char *args = input + 14;
+	    char *hunt = strtok(args, " ");
+	    char *treasure = strtok(NULL, " ");
+	    if (hunt && treasure) {
+	      view_treasure(hunt, treasure);
+	    } else {
+	      printf("Invalid view_treasure\n");
+	    }
         } else if (strcmp(input, "stop_monitor") == 0) {
 	  //send_command("stop_monitor");
-            monitor_stopping = 1;
 	    stop_monitor();
         } else if (strcmp(input, "exit") == 0) {
             if (monitor_pid > 0) {
-                printf("Error: Monitor still running.\n");
+                printf("Error: Monitor still running\n");
             } else {
                 break;
             }
         } else {
-            printf("Unknown command.\n");
+            printf("Unknown command\n");
         }
     }
 

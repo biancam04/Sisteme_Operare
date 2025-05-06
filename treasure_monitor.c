@@ -12,15 +12,14 @@ volatile sig_atomic_t command_ready = 0;
 
 void handle_signal(int sig) {
     if (sig == SIGUSR1) {
-        FILE *f = fopen("monitor_command.txt", "r");
-        if (f) {
-            char command[256];
-            if (fgets(command, sizeof(command), f)) {
-                printf("Monitor received command: %s\n", command);
-            }
-            fclose(f);
-        }
+        command_ready = 1;
     }
+}
+
+void handle_sigint(int sig) {
+    printf("\n[Monitor] Caught SIGINT, exiting...\n");
+    fflush(stdout);
+    exit(0);
 }
 
 
@@ -38,18 +37,25 @@ void monitor_loop() {
             read(fd, buf, sizeof(buf)-1);
             close(fd);
 
+	    buf[strcspn(buf, "\r\n")] = 0;
+
             if (strcmp(buf, "list_hunts") == 0) {
 	        printf("[Monitor] Listing hunts...\n");
+		fflush(stdout);
             } else if (strcmp(buf, "list_treasures") == 0) {
                 printf("[Monitor] Listing treasures...\n");
+		fflush(stdout);
             } else if (strcmp(buf, "view_treasure") == 0) {
                 printf("[Monitor] Viewing treasure...\n");
+		fflush(stdout);
             } else if (strcmp(buf, "stop_monitor") == 0) {
                 printf("[Monitor] Stopping...\n");
-                usleep(4000000); 
+		fflush(stdout);
+                usleep(3000000); 
                 exit(0);
             } else {
                 printf("[Monitor] Unknown command: %s\n", buf);
+		fflush(stdout);
             }
         }
         usleep(100000); 
@@ -63,6 +69,8 @@ int main() {
     sa.sa_flags = SA_RESTART;
     sigaction(SIGUSR1, &sa, NULL);
 
+    signal(SIGINT, handle_sigint);
+    
     printf("Monitor started (PID: %d)\n", getpid());
     monitor_loop();
 }
