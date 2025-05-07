@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <string.h>
+#include "treasure_manager.h"
 
 
 #define COMMAND_FILE "monitor_command.txt"

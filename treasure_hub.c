@@ -99,50 +99,6 @@ void list_hunts() {
     closedir(dir);
 }
 
-void list_treasure(const char *hunt_name) {
-    char path[512];
-    snprintf(path, sizeof(path), "HUNTS/%s/treasures.txt", hunt_name);
-
-    FILE *f = fopen(path, "r");
-    if (!f) {
-        printf("Could not open treasures for hunt: %s\n", hunt_name);
-        return;
-    }
-
-    printf("Treasures in %s:\n", hunt_name);
-    char line[256];
-    while (fgets(line, sizeof(line), f)) {
-        printf("- %s", line); 
-    }
-
-    fclose(f);
-}
-
-void view_treasure(const char *hunt_name, const char *treasure_name) {
-    char path[512];
-    snprintf(path, sizeof(path), "HUNTS/%s/treasures.txt", hunt_name);
-
-    FILE *f = fopen(path, "r");
-    if (!f) {
-        printf("Could not open treasures for hunt: %s\n", hunt_name);
-        return;
-    }
-
-    char line[256];
-    int found = 0;
-    while (fgets(line, sizeof(line), f)) {
-        if (strstr(line, treasure_name)) {
-            printf("Found: %s", line);
-            found = 1;
-            break;
-        }
-    }
-
-    if (!found)
-        printf("Treasure %s not found in %s\n", treasure_name, hunt_name);
-    fclose(f);
-}
-
 
 int main() {
     struct sigaction sa;
@@ -168,7 +124,11 @@ int main() {
         } else if (strncmp(input, "list_treasures",14) == 0) {
             send_command("list_treasures");
 	    char *hunt = input + 15;
-	    list_treasure(hunt);
+	    if(hunt){
+	      list_treasures(hunt);
+	    } else {
+	      printf("Invalid list_treasures\n");
+	    }
         } else if (strncmp(input, "view_treasure",13) == 0) {
             send_command("view_treasure");
 	    char *args = input + 14;
@@ -180,7 +140,7 @@ int main() {
 	      printf("Invalid view_treasure\n");
 	    }
         } else if (strcmp(input, "stop_monitor") == 0) {
-	  //send_command("stop_monitor");
+	    send_command("stop_monitor");
 	    stop_monitor();
         } else if (strcmp(input, "exit") == 0) {
             if (monitor_pid > 0) {
