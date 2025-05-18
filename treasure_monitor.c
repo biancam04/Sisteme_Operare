@@ -38,6 +38,8 @@ void monitor_loop() {
             read(fd, buf, sizeof(buf)-1);
             close(fd);
 
+	    unlink(COMMAND_FILE); 
+
 	    buf[strcspn(buf, "\r\n")] = 0;
 
             if (strcmp(buf, "list_hunts") == 0) {
