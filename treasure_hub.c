@@ -103,7 +103,7 @@ void stop_monitor() {
 void list_hunts() {
     DIR *dir = opendir("HUNTS");
     if (!dir) {
-        perror("[Hub] Failed to open HUNTS directory");
+        perror("[Hub] Failed to open HUNTS");
         return;
     }
 
@@ -140,38 +140,44 @@ int main() {
             start_monitor();
 
         } else if (strcmp(input, "list_hunts") == 0) {
-            send_command("list_hunts");
+	  send_command("list_hunts");
+	  if(monitor_pid>0){
             read_monitor_output();
             list_hunts();
+	  }
 
         } else if (strncmp(input, "list_treasures", 14) == 0) {
+	  send_command("list_treasures");
+	  if(monitor_pid>0){
             char *hunt = input + 15;
             if (hunt && strlen(hunt) > 0) {
-                send_command("list_treasures");
                 read_monitor_output();
 		list_treasures(hunt);
             } else {
                 printf("[Hub] Invalid list_treasures command\n");
             }
+	  }
 
         } else if (strncmp(input, "view_treasure", 13) == 0) {
-            char *args = input + 14;
-            char *hunt = strtok(args, " ");
-            char *treasure = strtok(NULL, " ");
-            if (hunt && treasure) {
-                send_command("view_treasure");
+	   send_command("view_treasure");
+	   if(monitor_pid>0){
+	     char *args = input + 14;
+	     char *hunt = strtok(args, " ");
+	     char *treasure = strtok(NULL, " ");
+	     if (hunt && treasure) {
                 read_monitor_output();
 		view_treasure(hunt,treasure);
-            } else {
+	     } else {
                 printf("[Hub] Invalid view_treasure command\n");
-            }
+	     }
+	   }
 
         } else if (strcmp(input, "stop_monitor") == 0) {
             stop_monitor();
 
         } else if (strcmp(input, "exit") == 0) {
             if (monitor_pid > 0) {
-                printf("[Hub] Error: Monitor still running. Use stop_monitor first.\n");
+                printf("[Hub] Error: Monitor still running, stop monitor first.\n");
             } else {
                 break;
             }
@@ -179,7 +185,7 @@ int main() {
         } else if (strcmp(input, "calculate_score") == 0) {
             DIR *dir = opendir("HUNTS");
             if (!dir) {
-                perror("[Hub] Failed to open HUNTS directory");
+                perror("[Hub] Failed to open HUNTS");
                 continue;
             }
 
