@@ -130,6 +130,7 @@ int main() {
     while (1) {
         printf("> ");
         fflush(stdout);
+
         if (!fgets(input, sizeof(input), stdin))
             break;
 
@@ -187,17 +188,39 @@ int main() {
                 if (entry->d_type == DT_DIR &&
                     strcmp(entry->d_name, ".") != 0 &&
                     strcmp(entry->d_name, "..") != 0) {
+
+                    int pipefd[2];
+                    if (pipe(pipefd) == -1) {
+                        perror("pipe failed");
+                        continue;
+                    }
+
                     pid_t pid = fork();
                     if (pid == 0) {
+                        close(pipefd[0]); 
+                        dup2(pipefd[1], STDOUT_FILENO); 
+                        close(pipefd[1]);
+
                         char path[1024];
                         snprintf(path, sizeof(path), "HUNTS/%s", entry->d_name);
                         execl("./score_calculator", "score_calculator", path, NULL);
                         perror("exec score_calculator");
                         exit(1);
+                    } else if (pid > 0) {
+                        close(pipefd[1]); 
+                        char buf[256];
+                        int n;
+                        printf("[Hub] Scores for hunt '%s':\n", entry->d_name);
+                        while ((n = read(pipefd[0], buf, sizeof(buf) - 1)) > 0) {
+                            buf[n] = '\0';
+                            printf("%s", buf);
+                        }
+                        close(pipefd[0]);
+                        waitpid(pid, NULL, 0);
                     }
                 }
             }
-	    closedir(dir);
+            closedir(dir);
 
         } else {
             printf("[Hub] Unknown command\n");
